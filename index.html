@@ -24,7 +24,7 @@ var next_puppy = {
 //function called on keyUp
 //document ready -- load content then call that function
 
-function word_count(textvalue) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
+function word_count(text) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
   //autosave it
 	if (typeof localStorage != "undefined") localStorage.text = text;
   //display warning if applic
@@ -35,12 +35,20 @@ function word_count(textvalue) { //onKeyUp textarea, wc = hidden_count (hidden i
   text = text.replace(/^\s*|\s*$/g,''); //removes whitespace from front and end
   text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
   //count words
-	var words_list = text.split(" ");
-	//update 
-  current_word_count = words_list.length;
+	var words = text.split(" ");
+	words = words.length;
+	//check for deletion
+	if (words < current_word_count) {
+		console.log('words removed: ' + current_word_count + ' -> ' + words);
+		last_puppy = last_puppy - current_word_count + words;
+		console.log('last puppy updated to ' + last_puppy);
+	}
+	//update
+	current_word_count = words;
   $("#displayWords").html(current_word_count);
 	//check for puppy
   if (current_word_count - last_puppy >= words_per_reward) {
+		console.log('Awww yeah');
     show_puppy();
   }
 }
@@ -63,10 +71,11 @@ function hide_warning(id, immediate) {
 }
 
 function show_puppy() {
-//  console.log("show");
+  console.log("C'mere pup");
   hide_warning("#warning-ls", true);
   hide_warning("#warning-no-ls", true);
   last_puppy = current_word_count;
+	if (typeof localStorage != "undefined") localStorage.lastpup = last_puppy;
   $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
   $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
   fetch_next_puppy();
@@ -110,7 +119,13 @@ function getParameterByName(name) {
 }
 
 function restore_text() {
-  if (typeof localStorage != "undefined") $("#writearea").attr("value", localStorage.text).keyup();
+	console.log('restore_text');
+	console.log(localStorage);
+  if (typeof localStorage != "undefined") {
+		last_puppy = localStorage.lastpup;
+		console.log('Last pup was ' + last_puppy);
+		$("#writearea").attr("value", localStorage.text).keyup();
+	}
 }
 </script>
 </head>
@@ -141,8 +156,7 @@ function restore_text() {
 </div>
 
 <form>
-	<input type="hidden" name="hidden_count" value="" disabled  />
-	<textarea id="writearea" cols="80" rows="30" onKeyUp="word_count(this.value, hidden_count)"></textarea>
+	<textarea id="writearea" cols="80" rows="30" onKeyUp="word_count(this.value)"></textarea>
 </form>
 <form class="controls">
 	<span class="meta">
