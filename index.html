@@ -9,17 +9,10 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
 <script>
-var current_word_count = 0;
-var words_for_reward = 100;
-var puppies_earned = 0;
-var puppies_shown = 0;
+var current_word_count = 0; //warning check, puppies_earned calc
+var words_for_reward = 100; //words per puppy
+var last_puppy = 0; //last puppy shown at (! make sure to set this when page is initially loaded)
 var warning_shown = false;
-var warning;
-if (typeof localStorage == "undefined"){
-	warning = "#warning-no-ls"
-} else {
-	warning = "#warning-ls";
-}
 
 var next_puppy = {
   img_url: '',
@@ -27,14 +20,34 @@ var next_puppy = {
   alt: ''
 };
 
-function word_count(text, wc) {
-  if (typeof localStorage != "undefined") localStorage.text = text;
-  if (current_word_count >= 10 && warning_shown == false) {
+//my process: function looks at textarea, counts words, updates a span
+//function called on keyUp
+//document ready -- load content then call that function
+function charLimitDisplay(area, limit){
+	var counter = document.getElementById(area.name + '_counter');
+	var diff = limit - area.value.length;
+  if (diff >= 0) {
+    counter.innerHTML = diff + ' characters remaining';
+    counter.className = 'char_counter_ok';
+  } else {
+    counter.innerHTML = -diff + ' characters over the limit';
+    counter.className = 'char_counter_over';
+  } 
+}
+
+function word_count(text, wc) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
+  //autosave it
+	if (typeof localStorage != "undefined") localStorage.text = text;
+  //display warning if applic
+	if (current_word_count >= 10 && warning_shown == false) {
     show_warning();
   }
+	//consolidate whitespace
   text = text.replace(/^\s*|\s*$/g,''); //removes whitespace from front and end
   text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
-  var words = text.split(" ");
+  //count words
+	var words = text.split(" ");
+	//update 
   wc.value = words.length;
   current_word_count = wc.value = words.length;
   $("#displayWords").html(wc.value);
@@ -45,21 +58,26 @@ function word_count(text, wc) {
 }
 
 function show_warning() {
-  $(warning).fadeIn("slow");
+	if (typeof localStorage == "undefined"){
+		$("#warning-no-ls").fadeIn("slow");
+	} else {
+		$("#warning-ls").fadeIn("slow");
+	}
 }
 
-function hide_warning(immediate) {
+function hide_warning(id, immediate) {
   if (immediate == true) {
-    $(warning).hide();
+    $(id).hide();
   } else {
-    $(warning).fadeOut("slow");
+    $(id).fadeOut("slow");
   }
   warning_shown = true;
 }
 
 function show_puppy() {
 //  console.log("show");
-  hide_warning(true);
+  hide_warning("#warning-ls", true);
+  hide_warning("#warning-no-ls", true);
   puppies_shown++;
   $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
   $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
@@ -87,7 +105,7 @@ function fetch_next_puppy() {
   });
 }
 
-function change_reward(howmany) {
+function change_reward(howmany) { //set words per image
 //  console.log("rewarding every " + howmany);
     words_for_reward = howmany;
     puppies_earned = current_word_count / howmany;
@@ -125,7 +143,7 @@ function restore_text() {
     upgrade to a recent version of <a href="https://www.google.com/chrome/">Chrome</a>, 
       <a href="http://www.mozilla.org/firefox/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> 
       or <a href="http://www.opera.com/">Opera</a>.</p>
-		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning()">OK, got it!</a></p>
+		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning('#warning-no-ls')">OK, got it!</a></p>
   </div>
   <div id="warning-ls" class="warning" style="display:none">
 		<h2>Hey!</h2>
@@ -133,7 +151,7 @@ function restore_text() {
         Your writing will be saved even if you close this page.</p>
     <p>We can't take responsibility for things going wrong, though, so you might want to 
     copy and paste your work to an external document every so often, just in case.</p>
-		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning()">OK, got it!</a></p>
+		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning('#warning-ls')">OK, got it!</a></p>
 	</div>
 	<div id="puppyCredit"></div>
 </div>
