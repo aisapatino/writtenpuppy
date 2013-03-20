@@ -1,7 +1,7 @@
-Fork of writtenkitten
+Fork of writtenkitten for personal use
 
 ------
-Original README
+Original README:
 
 # ABOUT
 
