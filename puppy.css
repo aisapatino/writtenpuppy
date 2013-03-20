@@ -107,13 +107,13 @@ h1, .controls, h2, .hide {
   padding-right: 1em;
 }
 
-#displayWords, #about, #puppyCredit, .warning {
+#displayWords, #words_remaining, #about, #puppyCredit, .warning {
   font-family: "Helvetica Neue", sans-serif;
   font-weight: 200;
 }
 
 .meta {
-  padding-left: 2em
+  padding-right: 2em
 }
 
 #puppyFrame {

@@ -20,10 +20,6 @@ var next_puppy = {
   alt: ''
 };
 
-//my process: function looks at textarea, counts words, updates a span
-//function called on keyUp
-//document ready -- load content then call that function
-
 function word_count(text) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
   //autosave it
 	if (typeof localStorage != "undefined") localStorage.text = text;
@@ -36,7 +32,7 @@ function word_count(text) { //onKeyUp textarea, wc = hidden_count (hidden input 
   text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
   //count words
 	var words = text.split(" ");
-	words = words.length;
+	words = words.length -1;
 	//check for deletion
 	if (words < current_word_count) {
 		console.log('words removed: ' + current_word_count + ' -> ' + words);
@@ -49,36 +45,44 @@ function word_count(text) { //onKeyUp textarea, wc = hidden_count (hidden input 
 	//check for puppy
   if (current_word_count - last_puppy >= words_per_reward) {
 		console.log('Awww yeah');
+		$("#words_remaining").html('0');
     show_puppy();
-  }
+  } else {
+		var remaining = words_per_reward - current_word_count + last_puppy;
+		$("#words_remaining").html(remaining);
+	}
 }
 
 function show_warning() {
 	if (typeof localStorage == "undefined"){
 		$("#warning-no-ls").fadeIn("slow");
-	} else {
-		$("#warning-ls").fadeIn("slow");
 	}
 }
 
-function hide_warning(id, immediate) {
+function hide_warning(immediate) {
   if (immediate == true) {
-    $(id).hide();
+    $("#warning-no-ls").hide();
   } else {
-    $(id).fadeOut("slow");
+    $("#warning-no-ls").fadeOut("slow");
   }
   warning_shown = true;
 }
 
+function hide_puppy() {
+	$("#puppyFrame").fadeOut("slow");
+	$("#puppyCredit").html("");
+}
+
 function show_puppy() {
   console.log("C'mere pup");
-  hide_warning("#warning-ls", true);
-  hide_warning("#warning-no-ls", true);
+  hide_warning(true);
   last_puppy = current_word_count;
 	if (typeof localStorage != "undefined") localStorage.lastpup = last_puppy;
   $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
+  $("#puppyFrame").show();
   $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
   fetch_next_puppy();
+  window.setTimeout("hide_puppy()", 8000);
 }
 
 function fetch_next_puppy() {
@@ -103,8 +107,13 @@ function fetch_next_puppy() {
 }
 
 function change_reward(num) { //set words per image
-//  console.log("rewarding every " + num);
-    words_per_reward = num;
+  console.log("rewarding every " + num);
+  words_per_reward = num;
+	if (typeof localStorage != "undefined") {
+		localStorage.wordsper = num;
+	}
+	var remaining = words_per_reward - current_word_count + last_puppy;
+	$("#words_remaining").html(remaining);
 }
 
 function getParameterByName(name) {
@@ -122,9 +131,11 @@ function restore_text() {
 	console.log('restore_text');
 	console.log(localStorage);
   if (typeof localStorage != "undefined") {
-		last_puppy = localStorage.lastpup;
+		last_puppy = parseInt(localStorage.lastpup);
 		console.log('Last pup was ' + last_puppy);
-		$("#writearea").attr("value", localStorage.text).keyup();
+		words_per_reward = localStorage.wordsper || 100;
+		$("#howmany").val(words_per_reward);
+		$("#writearea").attr("value", localStorage.text).keyup(); //calls word_count
 	}
 }
 </script>
@@ -142,16 +153,8 @@ function restore_text() {
     upgrade to a recent version of <a href="https://www.google.com/chrome/">Chrome</a>, 
       <a href="http://www.mozilla.org/firefox/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> 
       or <a href="http://www.opera.com/">Opera</a>.</p>
-		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning('#warning-no-ls')">OK, got it!</a></p>
+		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning()">OK, got it!</a></p>
   </div>
-  <div id="warning-ls" class="warning" style="display:none">
-		<h2>Hey!</h2>
-		<p>Looks like your browser supports local storage.  That's great!  
-        Your writing will be saved even if you close this page.</p>
-    <p>We can't take responsibility for things going wrong, though, so you might want to 
-    copy and paste your work to an external document every so often, just in case.</p>
-		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning('#warning-ls')">OK, got it!</a></p>
-	</div>
 	<div id="puppyCredit"></div>
 </div>
 
@@ -170,6 +173,7 @@ function restore_text() {
 	<span class="meta">
 	Current word count: <span id="displayWords">0</span>
 	</span>
+	<span id="words_remaining">100</span> words until next puppy!
 </form>
 
 </body>
