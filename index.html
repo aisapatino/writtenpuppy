@@ -10,7 +10,7 @@
 
 <script>
 var current_word_count = 0; //warning check, puppies_earned calc
-var words_for_reward = 100; //words per puppy
+var words_per_reward = 100; //words per puppy
 var last_puppy = 0; //last puppy shown at (! make sure to set this when page is initially loaded)
 var warning_shown = false;
 
@@ -23,19 +23,8 @@ var next_puppy = {
 //my process: function looks at textarea, counts words, updates a span
 //function called on keyUp
 //document ready -- load content then call that function
-function charLimitDisplay(area, limit){
-	var counter = document.getElementById(area.name + '_counter');
-	var diff = limit - area.value.length;
-  if (diff >= 0) {
-    counter.innerHTML = diff + ' characters remaining';
-    counter.className = 'char_counter_ok';
-  } else {
-    counter.innerHTML = -diff + ' characters over the limit';
-    counter.className = 'char_counter_over';
-  } 
-}
 
-function word_count(text, wc) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
+function word_count(textvalue) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
   //autosave it
 	if (typeof localStorage != "undefined") localStorage.text = text;
   //display warning if applic
@@ -46,13 +35,12 @@ function word_count(text, wc) { //onKeyUp textarea, wc = hidden_count (hidden in
   text = text.replace(/^\s*|\s*$/g,''); //removes whitespace from front and end
   text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
   //count words
-	var words = text.split(" ");
+	var words_list = text.split(" ");
 	//update 
-  wc.value = words.length;
-  current_word_count = wc.value = words.length;
-  $("#displayWords").html(wc.value);
-  puppies_earned = current_word_count / words_for_reward;
-  if (puppies_earned >= puppies_shown+1) {
+  current_word_count = words_list.length;
+  $("#displayWords").html(current_word_count);
+	//check for puppy
+  if (current_word_count - last_puppy >= words_per_reward) {
     show_puppy();
   }
 }
@@ -78,7 +66,7 @@ function show_puppy() {
 //  console.log("show");
   hide_warning("#warning-ls", true);
   hide_warning("#warning-no-ls", true);
-  puppies_shown++;
+  last_puppy = current_word_count;
   $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
   $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
   fetch_next_puppy();
@@ -105,13 +93,9 @@ function fetch_next_puppy() {
   });
 }
 
-function change_reward(howmany) { //set words per image
-//  console.log("rewarding every " + howmany);
-    words_for_reward = howmany;
-    puppies_earned = current_word_count / howmany;
-    puppies_shown = parseInt(puppies_earned);
-//  console.log("puppies_earned = " + puppies_earned);
-//  console.log("puppies_shown = " + puppies_shown);
+function change_reward(num) { //set words per image
+//  console.log("rewarding every " + num);
+    words_per_reward = num;
 }
 
 function getParameterByName(name) {
