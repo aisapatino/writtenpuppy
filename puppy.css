@@ -1,5 +1,5 @@
 ﻿body {  
-  background: url(kittenbg.gif) repeat #6AAFDA
+  background: url(puppybg.gif) repeat #6AAFDA
 }
 
 ::-moz-selection {
@@ -107,7 +107,7 @@ h1, .controls, h2, .hide {
   padding-right: 1em;
 }
 
-#displayWords, #about, #kittenCredit, .warning {
+#displayWords, #about, #puppyCredit, .warning {
   font-family: "Helvetica Neue", sans-serif;
   font-weight: 200;
 }
@@ -116,7 +116,7 @@ h1, .controls, h2, .hide {
   padding-left: 2em
 }
 
-#kittenFrame {
+#puppyFrame {
   float: right;
   height: 400px;
   width: 400px;
@@ -124,11 +124,11 @@ h1, .controls, h2, .hide {
   background-repeat: no-repeat;
 }
 
-#nextKitten {
+#nextpuppy {
   display: none
 }
 
-#kittenCredit {
+#puppyCredit {
   color: #999;
   width: 100%;
   font-size: .8em;
