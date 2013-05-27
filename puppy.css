@@ -1,4 +1,4 @@
-﻿body {  
+﻿body {
   background: url(puppybg.gif) repeat #6AAFDA
 }
 
@@ -73,9 +73,14 @@ p {
   font-size: .9em
 }
 
-h1, .controls, h2, .hide {
-  font-family: 'Indie Flower', cursive;
+h1 {
+  font-family: Codystar;
   font-weight: normal;
+}
+
+.controls, h2, .hide {
+  font-family:'Yanone Kaffeesatz';
+  font-weight:normal;
 }
 
 .hide {
