@@ -1,190 +1,227 @@
 ﻿<!doctype html>
 <html lang="en">
 <head>
-<title>Puppieeeeeees</title>
-<meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-<link href="http://fonts.googleapis.com/css?family=Codystar|Yanone+Kaffeesatz:300" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" type="text/css" href="puppy.css">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <title>Puppieeeeeees</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <link href="http://fonts.googleapis.com/css?family=Codystar|Yanone+Kaffeesatz:300" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" type="text/css" href="puppy.css">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 
-<script>
-var current_word_count = 0; //used by warning check, puppies_earned calc
-var words_per_reward = 100; //words per puppy
-var last_puppy = 0; //last puppy shown at (! make sure to set this when page is initially loaded)
-var warning_shown = false;
-
-var next_puppy = {
-  img_url: '',
-  page_url: '',
-  alt: ''
-};
-
-function word_count(text) { //onKeyUp textarea, wc = hidden_count (hidden input whose value gets updated)
-  //autosave it
-	if (typeof localStorage != "undefined") localStorage.text = text;
-  //display warning if applic
-	if (current_word_count >= 10 && warning_shown == false) {
-    show_warning();
-  }
-	//consolidate whitespace
-  text = text.replace(/^\s*|\s*$/g,''); //removes whitespace from front and end
-  text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
-  //count words
-	var words = text.split(" ");
-	words = words.length -1;
-	//check for deletion
-	if (words < current_word_count) {
-		console.log('words removed: ' + current_word_count + ' -> ' + words);
-		last_puppy = last_puppy - current_word_count + words;
-		console.log('last puppy updated to ' + last_puppy);
-	}
-	//update
-	current_word_count = words;
-  $("#displayWords").html(current_word_count);
-	//check for puppy
-  if (current_word_count - last_puppy >= words_per_reward) {
-		console.log('Awww yeah');
-		$("#words_remaining").html('0');
-    show_puppy();
-  } else {
-		var remaining = words_per_reward - current_word_count + last_puppy;
-		$("#words_remaining").html(remaining);
-	}
-}
-
-function show_warning() {
-	if (typeof localStorage == "undefined"){
-		$("#warning-no-ls").fadeIn("slow");
-	}
-}
-
-function hide_warning(immediate) {
-  if (immediate == true) {
-    $("#warning-no-ls").hide();
-  } else {
-    $("#warning-no-ls").fadeOut("slow");
-  }
-  warning_shown = true;
-}
-
-function hide_puppy() {
-	$("#puppyFrame").fadeOut("slow");
-	$("#puppyCredit").html("");
-}
-
-/**
- * Displays a puppy image
- **/
-function show_puppy() {
-  console.log("C'mere pup");
-  hide_warning(true);
-  last_puppy = current_word_count;
-	if (typeof localStorage != "undefined") localStorage.lastpup = last_puppy;
-  $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
-  $("#puppyFrame").show();
-  $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
-  fetch_next_puppy();
-  window.setTimeout("hide_puppy()", 8000);
-}
-
-/**
- * Fetches puppy photos from flickr
- *
- * Uses flickr's REST API to get photos in JSON format
- **/
-function fetch_next_puppy() {
-  if (tmp = getParameterByName("search")) {
-    search = tmp;
-  } else {
-    search = "frenchbulldog,frenchie,frenchies";
-  }
-
-  var flickr_url = "http://api.flickr.com/services/rest/?format=json&sort=interestingness-desc&method=flickr.photos.search&extras=owner_name&tags=" + search + "&tag_mode=all&api_key=442755a49e0cf4dd19c01c1c40c41337&jsoncallback=?";
-
-  $.getJSON(flickr_url, function(data) {
-    console.log(data);
-    if (data.stat == "ok") { //indicates success
-      var i = Math.ceil(Math.random() * 50);
-      console.log('Getting photo #' + i);
-      var photo = data.photos.photo[i];
-      next_puppy.img_url = "http://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_z.jpg";
-      next_puppy.page_url = "http://www.flickr.com/photos/" + photo.owner + "/" + photo.id;
-      next_puppy.alt = photo.title + " by " + photo.ownername + " (under CC-BY)";
-      $("#nextpuppy").attr("src", next_puppy.img_url);
+  <script>
+  var current_word_count = 0; //used by warning check, puppies_earned calc
+  var words_per_reward = 100; //words per puppy
+  var last_puppy = 0; //last puppy shown at (! make sure to set this when page is initially loaded)
+  var warning_shown = false;
+  
+  var next_puppy = {
+    img_url: '',
+    page_url: '',
+    alt: ''
+  };
+  
+  function onKeyUp(text) {
+    //autosave it
+  	if (typeof localStorage != "undefined") localStorage.text = text;
+  	//display warning if applic
+  	if (current_word_count >= 10 && warning_shown == false) {
+      show_warning();
     }
-  });
-}
+    update_progress(text);
+  }
+  
+  /**
+   * Calculate word count for textarea
+   * 
+   * @param {string} text content of the textarea
+   **/
+  function getWordCount(text) { 
 
-function change_reward(num) { //set words per image
-  console.log("rewarding every " + num);
-  words_per_reward = num;
-	if (typeof localStorage != "undefined") {
-		localStorage.wordsper = num;
-	}
-	var remaining = words_per_reward - current_word_count + last_puppy;
-	$("#words_remaining").html(remaining);
-}
+  	//consolidate whitespace
+    text = text.replace(/^\s*|\s*$/g,''); //removes whitespace from front and end
+    text = text.replace(/\s+/g,' '); // collapse multiple consecutive spaces
+    //count words
+  	var words = text.split(" ");
+  	return words.length -1;
+  }
+  
+  /**
+   * Checks current progress relative to next award. Updates progress vars
+   * 
+   * @param {string} text value of the textarea
+   **/
+  function update_progress(text) {
+    word_count = getWordCount(text);
+    //check for deletion
+  	if (word_count < current_word_count) {
+  		console.log('words removed: ' + current_word_count + ' -> ' + word_count);
+  		last_puppy = last_puppy - current_word_count + word_count;
+  		console.log('last puppy updated to ' + last_puppy);
+  	}
+  	//update
+  	current_word_count = words;
+    $("#displayWords").html(current_word_count);
+  	//check for puppy
+    if (current_word_count - last_puppy >= words_per_reward) {
+  		console.log('Awww yeah');
+  		$("#words_remaining").html('0');
+      show_puppy();
+    } else {
+  		var remaining = words_per_reward - current_word_count + last_puppy;
+  		$("#words_remaining").html(remaining);
+  	}
+  }
 
-function getParameterByName(name) {
-  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-  var regexS = "[\\?&]" + name + "=([^&#]*)";
-  var regex = new RegExp(regexS);
-  var results = regex.exec(window.location.href);
-  if (results == null)
-    return "";
-  else
-    return decodeURIComponent(results[1].replace(/\+/g, " "));
-}
 
-function restore_text() {
-	console.log('restore_text');
-	console.log(localStorage);
-  if (typeof localStorage != "undefined") {
-    console.log(localStorage.lastpup);
-		last_puppy = parseInt(localStorage.lastpup || 0);
-		console.log('Last pup was ' + last_puppy);
-		words_per_reward = localStorage.wordsper || 100;
-		$("#howmany").val(words_per_reward);
-		$("#writearea").attr("value", localStorage.text).keyup(); //calls word_count
-	}
-}
-</script>
+  
+  function show_warning() {
+  	if (typeof localStorage == "undefined"){
+  		$("#warning-no-ls").fadeIn("slow");
+  	}
+  }
+  
+  function hide_warning(immediate) {
+    if (immediate == true) {
+      $("#warning-no-ls").hide();
+    } else {
+      $("#warning-no-ls").fadeOut("slow");
+    }
+    warning_shown = true;
+  }
+  
+  function hide_puppy() {
+  	$("#puppyFrame").fadeOut("slow");
+  	$("#puppyCredit").html("");
+  }
+  
+  /**
+   * Displays a puppy image
+   * 
+   * Then calls fetch_next_puppy
+   **/
+  function show_puppy() {
+    console.log("C'mere pup");
+    hide_warning(true);
+    last_puppy = current_word_count;
+  	if (typeof localStorage != "undefined") localStorage.lastpup = last_puppy;
+    $("#puppyFrame").css("background-image", "url(" + next_puppy.img_url + ")");
+    $("#puppyFrame").show();
+    $("#puppyCredit").html("<a href='" + next_puppy.page_url + "'>" + next_puppy.alt + "</a>");
+    fetch_next_puppy();
+    window.setTimeout("hide_puppy()", 8000);
+  }
+  
+  /**
+   * Fetches puppy photos from flickr
+   *
+   * Uses flickr's REST API to get photos in JSON format
+   **/
+  function fetch_next_puppy() {
+    if (tmp = getParameterByName("search")) {
+      search = tmp;
+    } else {
+      search = "frenchbulldog,frenchie,frenchies";
+    }
+  
+    var flickr_url = "http://api.flickr.com/services/rest/?format=json&sort=interestingness-desc&method=flickr.photos.search&extras=owner_name&tags=" + search + "&tag_mode=all&api_key=442755a49e0cf4dd19c01c1c40c41337&jsoncallback=?";
+  
+    $.getJSON(flickr_url, function(data) {
+      console.log(data);
+      if (data.stat == "ok") { //indicates success
+        var i = Math.ceil(Math.random() * 50);
+        console.log('Getting photo #' + i);
+        var photo = data.photos.photo[i];
+        next_puppy.img_url = "http://farm" + photo.farm + ".static.flickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_z.jpg";
+        next_puppy.page_url = "http://www.flickr.com/photos/" + photo.owner + "/" + photo.id;
+        next_puppy.alt = photo.title + " by " + photo.ownername + " (under CC-BY)";
+        $("#nextpuppy").attr("src", next_puppy.img_url);
+      }
+    });
+  }
+  
+  /**
+   * Sets number of words between images
+   * 
+   * @param {number} num
+   **/
+  function change_reward(num) { //set words per image
+    console.log("rewarding every " + num);
+    words_per_reward = num;
+  	if (typeof localStorage != "undefined") {
+  		localStorage.wordsper = num;
+  	}
+  	var remaining = words_per_reward - current_word_count + last_puppy;
+  	$("#words_remaining").html(remaining);
+  }
+  
+  function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+    var regexS = "[\\?&]" + name + "=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var results = regex.exec(window.location.href);
+    if (results == null)
+      return "";
+    else
+      return decodeURIComponent(results[1].replace(/\+/g, " "));
+  }
+  
+  function restore() {
+  	console.log('restore_text');
+  	console.log(localStorage);
+    if (typeof localStorage != "undefined") {
+  		words_per_reward = localStorage.wordsper || 100;
+  		$("#howmany").val(words_per_reward);
+  		$("#writearea").attr("value", localStorage.text).onKeyUp();
+  	}
+  }
+  
+  function onLoad(){
+    restore();
+    fetch_next_puppy();
+  }
+  
+  </script>
 </head>
-<body onLoad="fetch_next_puppy(); restore_text()">
-<div class="wrapper">
-<a name="top"></a>
-<h1>Puppieeeeeees</h1>
-<div id="puppyFrame">
-	<div id="warning-no-ls" class="warning" style="display:none">
-		<h2>Warning!</h2>
-		<p>We don't save your work for you! You'll need to regularly copy 
-        and paste your text into a word processor or other application to save it permanently.</p>
-    <p>If you want your work saved even if you close your browser,
-    upgrade to a recent version of <a href="https://www.google.com/chrome/">Chrome</a>, 
-      <a href="http://www.mozilla.org/firefox/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> 
-      or <a href="http://www.opera.com/">Opera</a>.</p>
-		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning()">OK, got it!</a></p>
-  </div>
-	<div id="puppyCredit"></div>
-</div>
 
-<form>
-	<textarea id="writearea" cols="80" rows="30" onKeyUp="word_count(this.value)"></textarea>
-</form>
-<form class="controls">
-	<span class="meta">
-	  Every <select id="howmany" onChange="change_reward(this.value)">
-		<option value="100">100</option>
-		<option value="200">200</option>
-		<option value="500">500</option>
-		</select> words
-	</span>
-	<span class="meta">
-	Word count: <span id="displayWords">0</span>
-	</span>
-	<span id="words_remaining">100</span> words until next puppy!
-</form>
+<body onLoad="onLoad()">
+  <div class="wrapper">
+    <a name="top"></a>
+    
+    <h1>Puppieeeeeees</h1>
+    
+    <div id="puppyFrame">
+    	<div id="warning-no-ls" class="warning" style="display:none">
+    		<h2>Warning!</h2>
+    		<p>We don't save your work for you! You'll need to regularly copy 
+            and paste your text into a word processor or other application to save it permanently.</p>
+        <p>If you want your work saved even if you close your browser,
+        upgrade to a recent version of <a href="https://www.google.com/chrome/">Chrome</a>, 
+          <a href="http://www.mozilla.org/firefox/">Firefox</a>, <a href="http://www.apple.com/safari/">Safari</a> 
+          or <a href="http://www.opera.com/">Opera</a>.</p>
+    		<p class="hidelink"><a href="#" class="hide" onClick="hide_warning()">OK, got it!</a></p>
+      </div>
+    	<div id="puppyCredit"></div>
+    </div>
+  
+    <form>
+    	<textarea id="writearea" cols="80" rows="30" onKeyUp="onKeyUp(this.value)"></textarea>
+    </form>
+    
+    <form class="controls">
+    	<span class="meta">
+    	  Every <select id="howmany" onChange="change_reward(this.value)">
+    		<option value="100">100</option>
+    		<option value="200">200</option>
+    		<option value="500">500</option>
+    		</select> words
+    	</span>
+    	<span class="meta">
+    	Word count: <span id="displayWords">0</span>
+    	</span>
+    	<span id="words_remaining">100</span> words until next puppy!
+    </form>
+  
+  </div>
 
 </body>
 </html>
